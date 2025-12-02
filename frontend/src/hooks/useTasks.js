@@ -20,7 +20,7 @@ import { apiGet, apiPost, apiDelete, apiPut } from "../utils/api";
 
   addTask: async (text) => {
     try {
-      const data = await apiPost("/api/tasks/add-task", { task: text });
+      const data = await apiPost("/api/tasks/add-task", text);
       console.log({data});
       set({ tasks: data.tasks });
     } catch (err) {

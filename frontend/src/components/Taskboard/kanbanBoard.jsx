@@ -51,7 +51,7 @@ export default function KanbanBoard({ createDefaultData }) {
   const columns = [
     { id: "to-do", title: "To Do" },
     { id: "in-progress", title: "In Progress" },
-    { id: "completed", title: "Completed" },
+    { id: "done", title: "Done" },
   ];
 
   return (
