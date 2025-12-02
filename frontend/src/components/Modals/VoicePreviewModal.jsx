@@ -12,7 +12,7 @@ export default function VoicePreviewModal({ data, onClose, onSave }) {
       alert("Title is required");
       return;
     }
-    onSave({ title, description, priority, status, dueDate });
+    onSave({ title, description, priority, status, due_date: dueDate });
   };
 
   return (
@@ -57,7 +57,7 @@ export default function VoicePreviewModal({ data, onClose, onSave }) {
             >
               <option value="to-do">To Do</option>
               <option value="in-progress">In Progress</option>
-              <option value="completed">Completed</option>
+              <option value="done">Done</option>
             </select>
           </div>
 

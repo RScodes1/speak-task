@@ -1,79 +1,103 @@
 const express = require('express');
-const taskRouter = express.Router();
 const multer = require("multer");
-const OpenAI = require("openai");
+const fs = require("fs");
+
+const path = require("path");
 const chrono = require("chrono-node");
+const OpenAI = require("openai");
 const { TaskModel } = require('../models/tasks.model');
-require("dotenv").config();
 
+const taskRouter = express.Router();
 const upload = multer();
-
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-// nlp parse
-taskRouter.post('/audio/parse', upload.single('audio'), async(req, res) => {
-    try {
-        if(!req.file){
-              return res.status(400).json({ error: "Audio file is required" });
-        }
 
-           // Convert audio text
-            const audioBuffer = req.file.buffer;
+function parseModelJSON(text) {
+  try {
+    const cleaned = text.replace(/```json/g, "").replace(/```/g, "").trim();
+    return JSON.parse(cleaned);
+  } catch (err) {
+    console.error("Failed to parse model JSON:", text);
+    throw err;
+  }
+}
 
-            const transcription = await client.audio.transcriptions.create({
-            model: "gpt-4o-mini-tts",
-            file: audioBuffer,
-            response_format: "text",
-            });
+taskRouter.post("/audio/parse", upload.single("audio"), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: "Audio file is required" });
+    }
 
-        const userText = transcription.trim();
+    // Ensure supported file extension
+    let ext = path.extname(req.file.originalname).toLowerCase();
+    if (![".wav", ".webm", ".mp3", ".m4a", ".ogg"].includes(ext)) {
+      ext = ".wav"; // fallback
+    }
 
-       const extractionPrompt = 
-       `
-        Extract the following fields from the task description:
+    // Write buffer to temp file
+    const tmpPath = `/tmp/${Date.now()}${ext}`;
+    fs.writeFileSync(tmpPath, req.file.buffer);
 
-        Text: "${userText}"
+    // Transcribe using Whisper
+    const transcriptionResult = await client.audio.transcriptions.create({
+      model: "whisper-1",
+      file: fs.createReadStream(tmpPath),
+      filename: path.basename(tmpPath),
+    });
 
-        Return ONLY JSON:
-        {
+    // Cleanup temp file
+    fs.unlinkSync(tmpPath);
+
+    const userText = transcriptionResult.text.trim();
+
+    // Extract task fields via Chat Completion
+    const extractionPrompt = `
+      Extract the following fields from the task description:
+      Text: "${userText}"
+      Return ONLY JSON:
+      {
         "title": "",
         "due_date_raw": "",
         "priority": "",
         "status": ""
-        }
-
-        Rules:
-        - Title: summarize main task
-        - Due Date: extract any natural language date phrase (relative or absolute)
-        - Priority: look for "urgent", "high", "medium", "low", "critical"
-        - Status: default "to-do" unless "in progress", "completed", "done" is explicitly said.`;
+      }
+      Rules:
+      - Title: summarize main task
+      - Due Date: extract natural language date
+      - Priority: "urgent", "high", "medium", "low", "critical"
+      - Status: default "to-do" unless "in-progress" or "done" is mentioned
+    `;
 
     const parsed = await client.chat.completions.create({
-            model: "gpt-4o-mini",
-            messages: [{ role: "user", content: extractionPrompt }],
-            temperature: 0,
-            });
+      model: "gpt-4o-mini",
+      messages: [{ role: "user", content: extractionPrompt }],
+      temperature: 0,
+    });
 
-    const json = JSON.parse(parsed.choices[0].message.content);
+    // const json = JSON.parse(parsed.choices[0].message.content);
+    const json = parseModelJSON(parsed.choices[0].message.content);
 
-     let dueDate = null;
+
+    // Parse due date
+    let dueDate = null;
     if (json.due_date_raw) {
       const parsedDate = chrono.parseDate(json.due_date_raw);
       if (parsedDate) dueDate = parsedDate.toISOString();
     }
 
+    // Normalize priority
     const priority = (() => {
-      const p = json.priority?.toLowerCase() || "";
-      if (p.includes("urgent") || p.includes("critical") || p.includes("high"))
-        return "high";
+      const p = (json.priority || "").toLowerCase();
+      if (p.includes("urgent") || p.includes("high") || p.includes("critical")) return "high";
       if (p.includes("low")) return "low";
       return "medium";
     })();
 
+    // Normalize status
     const status = (() => {
-      const s = json.status?.toLowerCase() || "";
+      const s = (json.status || "").toLowerCase();
       if (s.includes("progress")) return "in-progress";
-      if (s.includes("done") || s.includes("complete")) return "completed";
+      if (s.includes("done") || s.includes("complete")) return "done";
       return "to-do";
     })();
 
@@ -82,13 +106,15 @@ taskRouter.post('/audio/parse', upload.single('audio'), async(req, res) => {
       due_date: dueDate,
       priority,
       status,
-      raw_text: userText, // optional for debugging
+      raw_text: userText,
     });
-    } catch (error) {
-      console.error(error);
-      return res.status(500).json({ error: "Voice parsing failed" });
-    }
-})
+
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Voice parsing failed" });
+  }
+});
+
 
 // view tasks
 taskRouter.get('/tasks', async(req, res) => {
@@ -147,6 +173,18 @@ taskRouter.get('/tasks', async(req, res) => {
        res.status(500).json({ error: "Failed to fetch tasks" });
      }
 });
+
+taskRouter.get('/tasks/task/:id', async(req, res) => {
+   try {
+      const { id } = req.params;
+        const existingTask = await TaskModel.findById({_id : id});
+      return res.json({ message: "Single task retreived", data : existingTask});
+          
+   } catch (error) {
+      console.error("ADD TASK ERROR:", error);
+    res.status(500).json({ message: "Internal server error" });
+   }
+})
 
 // create task
 taskRouter.post('/tasks/add-task', async (req, res) => {

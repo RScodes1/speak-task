@@ -6,21 +6,28 @@ const API_BASE_URL = "http://localhost:4500";
 
 export async function apiGet(path) {
   const res = await fetch(`${API_BASE_URL}${path}`);
-  console.log("raja");
+  console.log({res});
   if (!res.ok) throw new Error(`GET ${path} failed`);
   return res.json();
 }
 
 export async function apiPost(path, body = {}) {
+  const isFormData = body instanceof FormData;
+
   const res = await fetch(`${API_BASE_URL}${path}`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
+    headers: isFormData
+      ? {} // let browser set Content-Type and boundary automatically
+      : { "Content-Type": "application/json" },
+    body: isFormData ? body : JSON.stringify(body),
   });
 
   if (!res.ok) throw new Error(`POST ${path} failed`);
-  return res.json();
+
+  // Only parse JSON if it's not FormData response
+  return isFormData ? res : res.json();
 }
+
 
 
 export async function apiPut(path, body = {}) {

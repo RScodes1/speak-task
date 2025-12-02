@@ -20,7 +20,7 @@ export default function FilterBar({ onFilterChange }) {
         <option value="">All Status</option>
         <option value="to-do">To Do</option>
         <option value="in-progress">In Progress</option>
-        <option value="completed">Completed</option>
+        <option value="done">Done</option>
       </select>
 
       <select

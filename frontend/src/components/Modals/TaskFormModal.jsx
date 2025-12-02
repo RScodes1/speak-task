@@ -5,14 +5,28 @@ export default function TaskFormModal({ onClose, onSave, initialValues }) {
   const [description, setDescription] = useState(initialValues?.description || "");
   const [priority, setPriority] = useState(initialValues?.priority || "medium");
   const [status, setStatus] = useState(initialValues?.status || "to-do");
-  const [dueDate, setDueDate] = useState(initialValues?.dueDate || "");
+  const [dueDate, setDueDate] = useState(initialValues?.due_date || "");
 
   const handleSave = () => {
     if (!title) {
       alert("Title is required");
       return;
     }
-    onSave({ title, description, priority, status, dueDate });
+
+  const payload = {
+    title,
+    description,
+    priority,
+    status,
+    due_date: dueDate,
+  };
+
+  // IMPORTANT: include _id when editing
+  if (initialValues?._id) {
+    payload._id = initialValues._id;
+  }
+
+  onSave(payload);
   };
 
   return (
@@ -55,7 +69,7 @@ export default function TaskFormModal({ onClose, onSave, initialValues }) {
             >
               <option value="to-do">To Do</option>
               <option value="in-progress">In Progress</option>
-              <option value="completed">Completed</option>
+              <option value="done">Done</option>
             </select>
           </div>
 

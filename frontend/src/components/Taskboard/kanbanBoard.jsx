@@ -3,10 +3,10 @@ import KanbanColumn from "./KanbanColumn";
 import TaskFormModal from "../Modals/TaskFormModal";
 import VoicePreviewModal from "../Modals/VoicePreviewModal";
 import useTasks from "../../hooks/useTasks";
+import { DragDropContext } from "@hello-pangea/dnd";
 
 export default function KanbanBoard({ createDefaultData }) {
-  const { tasks, addTask, updateTask, deleteTask } = useTasks();
-
+  const { tasks, fetchTasks, getTask, addTask, updateTask, deleteTask } = useTasks();
   const [editingTask, setEditingTask] = useState(null);
   const [voiceTaskData, setVoiceTaskData] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -20,24 +20,43 @@ export default function KanbanBoard({ createDefaultData }) {
     }
   }, [createDefaultData]);
 
-  const openEditModal = (task) => {
-    setEditingTask(task);
-    setIsModalOpen(true);
-  };
+useEffect(() => {
+  if (tasks.length === 0) {
+    fetchTasks();
+  }
+}, []);
+
+  const handleUpdateTask = async (updatedTask) => {
+  try {
+    await updateTask(updatedTask._id, updatedTask);
+    // optionally refresh state or update zustand store directly
+  } catch (err) {
+    console.error(err);
+  }
+};
+
 
   const closeModal = () => {
     setEditingTask(null);
     setIsModalOpen(false);
   };
 
-  const handleSave = async (data) => {
+  
+const handleSave = async (data) => {
+  try {
     if (editingTask) {
-      await updateTask(editingTask.id, data);
+      // UPDATE MODE (called when editingTask is not null)
+      await updateTask(editingTask._id, data);
     } else {
+      // ADD MODE
       await addTask(data);
     }
-    closeModal();
-  };
+  } catch (err) {
+    console.error(err);
+  }
+
+  closeModal();
+};
 
   const handleVoiceSave = async (data) => {
     await addTask(data);
@@ -54,6 +73,21 @@ export default function KanbanBoard({ createDefaultData }) {
     { id: "done", title: "Done" },
   ];
 
+const handleDragEnd = async (result) => {
+  const { source, destination, draggableId } = result;
+
+  if (!destination) return;
+  if (source.droppableId === destination.droppableId) return;
+
+  const updatedStatus = destination.droppableId;
+
+  const task = tasks.find((t) => t._id === draggableId);
+
+  await updateTask(task._id, { ...task, status: updatedStatus });
+};
+
+
+
   return (
     <>
       <button
@@ -63,18 +97,38 @@ export default function KanbanBoard({ createDefaultData }) {
         Add Task
       </button>
 
-      <div className="grid grid-cols-3 gap-4">
-        {columns.map((col) => (
-          <KanbanColumn
-            key={col.id}
-            title={col.title}
-            status={col.id}
-            tasks={tasks.filter((t) => t.status === col.id)}
-            onEdit={openEditModal}
-            onDelete={deleteTask}
-          />
-        ))}
-      </div>
+ <DragDropContext onDragEnd={handleDragEnd}>
+    <div className="grid grid-cols-3 gap-4">
+      {columns.map((col) => (
+            <KanbanColumn
+              key={col.id}
+              title={col.title}
+              column={col}
+              tasks={tasks.filter((t) => t.status === col.id)}
+              onEdit={async (task) => {
+                // Fetch the latest task from backend before opening modal
+                try {
+                  const latestTask = await getTask(task._id || task.id);
+                  if (!latestTask) {
+                    alert("Failed to fetch task details");
+                    return;
+                  }
+                  setEditingTask(latestTask);
+                  setIsModalOpen(true);
+                } catch (err) {
+                  console.error("Failed to fetch single task:", err);
+                  alert("Could not fetch task details. Try again.");
+                }
+              }}
+              onUpdate={handleUpdateTask} // for inline status updates
+              onDelete={deleteTask}
+            />
+          ))}
+        </div>
+
+ </DragDropContext>
+   
+
 
       {/* Manual Create/Edit Modal */}
       {isModalOpen && (
