@@ -1,39 +1,98 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import KanbanColumn from "./KanbanColumn";
-import TaskCard from "./TaskCard";
+import TaskFormModal from "../Modals/TaskFormModal";
+import VoicePreviewModal from "../Modals/VoicePreviewModal";
+import useTasks from "../../hooks/useTasks";
 
-export default function KanbanBoard() {
-  // Sample initial tasks, normally fetched via API
-  const [tasks, setTasks] = useState([
-    { id: 1, title: "Task 1", status: "to-do", priority: "high", due_date: "2025-12-05" },
-    { id: 2, title: "Task 2", status: "in-progress", priority: "medium", due_date: "2025-12-06" },
-    { id: 3, title: "Task 3", status: "completed", priority: "low", due_date: "2025-12-07" },
-  ]);
+export default function KanbanBoard({ createDefaultData }) {
+  const { tasks, addTask, updateTask, deleteTask } = useTasks();
 
-  const statuses = ["to-do", "in-progress", "completed"];
+  const [editingTask, setEditingTask] = useState(null);
+  const [voiceTaskData, setVoiceTaskData] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isVoiceModalOpen, setIsVoiceModalOpen] = useState(false);
 
-  const handleUpdateTask = (updatedTask) => {
-    setTasks((prevTasks) => prevTasks.map(task => task.id === updatedTask.id ? updatedTask : task));
+  // Open voice modal whenever new voice data comes in
+  useEffect(() => {
+    if (createDefaultData) {
+      setVoiceTaskData(createDefaultData);
+      setIsVoiceModalOpen(true);
+    }
+  }, [createDefaultData]);
+
+  const openEditModal = (task) => {
+    setEditingTask(task);
+    setIsModalOpen(true);
   };
 
-  const handleDeleteTask = (taskId) => {
-    setTasks((prevTasks) => prevTasks.filter(task => task.id !== taskId));
+  const closeModal = () => {
+    setEditingTask(null);
+    setIsModalOpen(false);
   };
+
+  const handleSave = async (data) => {
+    if (editingTask) {
+      await updateTask(editingTask.id, data);
+    } else {
+      await addTask(data);
+    }
+    closeModal();
+  };
+
+  const handleVoiceSave = async (data) => {
+    await addTask(data);
+    setIsVoiceModalOpen(false);
+    setVoiceTaskData(null);
+    // Optionally open manual edit modal for further changes
+    // setEditingTask(data); 
+    // setIsModalOpen(true);
+  };
+
+  const columns = [
+    { id: "to-do", title: "To Do" },
+    { id: "in-progress", title: "In Progress" },
+    { id: "completed", title: "Completed" },
+  ];
 
   return (
-    <div className="flex gap-4 overflow-x-auto">
-      {statuses.map((status) => (
-        <KanbanColumn key={status} title={status}>
-          {tasks.filter(task => task.status === status).map(task => (
-            <TaskCard
-              key={task.id}
-              task={task}
-              onUpdate={handleUpdateTask}
-              onDelete={handleDeleteTask}
-            />
-          ))}
-        </KanbanColumn>
-      ))}
-    </div>
+    <>
+      <button
+        className="px-4 py-2 bg-blue-600 text-white rounded-xl shadow mb-4"
+        onClick={() => setIsModalOpen(true)}
+      >
+        Add Task
+      </button>
+
+      <div className="grid grid-cols-3 gap-4">
+        {columns.map((col) => (
+          <KanbanColumn
+            key={col.id}
+            title={col.title}
+            status={col.id}
+            tasks={tasks.filter((t) => t.status === col.id)}
+            onEdit={openEditModal}
+            onDelete={deleteTask}
+          />
+        ))}
+      </div>
+
+      {/* Manual Create/Edit Modal */}
+      {isModalOpen && (
+        <TaskFormModal
+          initialValues={editingTask}
+          onClose={closeModal}
+          onSave={handleSave}
+        />
+      )}
+
+      {/* Voice Preview Modal */}
+      {isVoiceModalOpen && voiceTaskData && (
+        <VoicePreviewModal
+          data={voiceTaskData}
+          onClose={() => setIsVoiceModalOpen(false)}
+          onSave={handleVoiceSave}
+        />
+      )}
+    </>
   );
 }

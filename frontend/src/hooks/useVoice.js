@@ -37,7 +37,7 @@ export function useVoice() {
 
   const handleCommand = async (text) => {
     try {
-      const data = await apiPost("/voice-command", { command: text });
+      const data = await apiPost("/api/audio/parse", { command: text });
       setResult(data);
     } catch (err) {
       console.error("Voice command error:", err);

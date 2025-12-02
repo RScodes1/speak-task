@@ -1,17 +1,28 @@
 const express = require('express');
 const { connection } = require('./config/db');
 const { taskRouter } = require('./routes/task.routes');
+const cors = require('cors');
 require('dotenv').config();
 
 const port = process.env.PORT;
  const app = express();
+
+ app.use(
+  cors({
+    origin: ["http://localhost:4500", "http://localhost:3001"],
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
+  })
+);
+
 
 app.use(express.json({limit : '10mb'}));
 
  app.get('/', async(req, res) => {
      res.send("hello");
  })
-app.use(taskRouter);
+app.use('/api', taskRouter);
 
 
 app.listen(port, async() => {
