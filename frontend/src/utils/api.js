@@ -1,4 +1,5 @@
-const API_BASE_URL = process.env.API_URL || "http://localhost:4500"; 
+
+const API_BASE_URL = process.env.API_URL || "https://speak-task.onrender.com"
 
 export async function apiGet(path) {
   const res = await fetch(`${API_BASE_URL}${path}`);
@@ -12,14 +13,13 @@ export async function apiPost(path, body = {}) {
   const res = await fetch(`${API_BASE_URL}${path}`, {
     method: "POST",
     headers: isFormData
-      ? {} // let browser set Content-Type and boundary automatically
+      ? {} 
       : { "Content-Type": "application/json" },
     body: isFormData ? body : JSON.stringify(body),
   });
 
   if (!res.ok) throw new Error(`POST ${path} failed`);
 
-  // Only parse JSON if it's not FormData response
   return isFormData ? res : res.json();
 }
 
@@ -45,7 +45,7 @@ export async function apiDelete(path) {
   if (!res.ok) throw new Error(`DELETE ${path} failed`);
 
   try {
-    return await res.json(); // in case backend returns JSON
+    return await res.json();
   } catch {
     return { success: true };
   }

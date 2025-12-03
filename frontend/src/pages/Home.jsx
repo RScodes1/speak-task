@@ -8,11 +8,6 @@ import KanbanBoard from "../components/Taskboard/KanbanBoard";
 
 export default function Home() {
   const [parsedVoiceData, setParsedVoiceData] = useState(null);
-  const { fetchTasks } = useTasks();
-
-  const handleSearch = (term) => {
-    fetchTasks(term);
-  };
 
   return (
     <div className="w-full min-h-screen p-6 bg-gray-900 text-gray-200">
