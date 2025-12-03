@@ -6,7 +6,7 @@ import useTasks from "../../hooks/useTasks";
 import { DragDropContext } from "@hello-pangea/dnd";
 import ConfirmModal from "../Modals/ConfirmModal";
 
-export default function KanbanBoard({ createDefaultData }) {
+ function KanbanBoard({ createDefaultData }) {
   const { tasks, fetchTasks, getTask, addTask, updateTask, deleteTask } = useTasks();
   const [editingTask, setEditingTask] = useState(null);
   const [voiceTaskData, setVoiceTaskData] = useState(null);
@@ -159,3 +159,5 @@ const handleCancelDelete = () => {
     </div>
   );
 }
+
+export default KanbanBoard;
