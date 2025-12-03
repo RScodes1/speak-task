@@ -28,29 +28,25 @@ taskRouter.post("/audio/parse", upload.single("audio"), async (req, res) => {
       return res.status(400).json({ error: "Audio file is required" });
     }
 
-    // Ensure supported file extension
     let ext = path.extname(req.file.originalname).toLowerCase();
     if (![".wav", ".webm", ".mp3", ".m4a", ".ogg"].includes(ext)) {
       ext = ".wav"; // fallback
     }
 
-    // Write buffer to temp file
     const tmpPath = `/tmp/${Date.now()}${ext}`;
     fs.writeFileSync(tmpPath, req.file.buffer);
 
-    // Transcribe using Whisper
     const transcriptionResult = await client.audio.transcriptions.create({
       model: "whisper-1",
       file: fs.createReadStream(tmpPath),
       filename: path.basename(tmpPath),
     });
 
-    // Cleanup temp file
+
     fs.unlinkSync(tmpPath);
 
     const userText = transcriptionResult.text.trim();
 
-    // Extract task fields via Chat Completion
     const extractionPrompt = `
       Extract the following fields from the task description:
       Text: "${userText}"
@@ -74,7 +70,6 @@ taskRouter.post("/audio/parse", upload.single("audio"), async (req, res) => {
       temperature: 0,
     });
 
-    // const json = JSON.parse(parsed.choices[0].message.content);
     const json = parseModelJSON(parsed.choices[0].message.content);
 
 
@@ -196,6 +191,38 @@ taskRouter.post('/tasks/add-task', async (req, res) => {
       return res.status(400).json({ message: "Title is required" });
     }
 
+    if (!status) {
+      return res.status(400).json({ message: "Status is required" });
+    }
+
+    // Convert 
+    const now = new Date();                    
+    const today = new Date(now.setHours(0,0,0,0)); 
+
+    const parsedDueDate = dueDate ? new Date(dueDate) : null;
+    if (parsedDueDate) parsedDueDate.setHours(0, 0, 0, 0);
+
+    if (status === "to-do") {
+      if (!parsedDueDate) {
+        return res.status(400).json({ message: "Due date is required for TODO tasks" });
+      }
+      if (parsedDueDate <= today) {
+        return res.status(400).json({ message: "TODO tasks must have a future due date" });
+      }
+    }
+
+    // 2. IN-PROGRESS any date allowed (no validation needed)
+
+    if (status === "done") {
+      if (!parsedDueDate) {
+        return res.status(400).json({ message: "Due date is required for DONE tasks" });
+      }
+      if (parsedDueDate.getTime() !== today.getTime()) {
+        return res.status(400).json({ message: "DONE tasks must have today's date as due date" });
+      }
+    }
+
+    // Create new task
     const newTask = await TaskModel.create({
       title,
       description,
@@ -214,6 +241,7 @@ taskRouter.post('/tasks/add-task', async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 });
+
 
 
 // update a task

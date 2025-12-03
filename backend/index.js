@@ -9,7 +9,7 @@ const port = process.env.PORT;
 
  app.use(
   cors({
-    origin: ["https://speak-task.vercel.app/", "http://localhost:4500", "http://localhost:3000"],
+    origin: ["https://speak-task.vercel.app", "http://localhost:4500", "http://localhost:3000"],
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
