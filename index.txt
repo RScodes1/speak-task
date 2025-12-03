@@ -1,4 +1,0 @@
-List of pending tasks 
- 1. Voice input - backend - DONE
- 2. Update modal FE - DONE
- 3. Drag and drop - DONE 
