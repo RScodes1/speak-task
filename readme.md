@@ -26,7 +26,7 @@ npm install
 ```bash
  Backend
 PORT=4500
-mongoURL=mongodb+srv://raja:*****@cluster0.vqouc0m.mongodb.net/speakTask?retryWrites=true&w=majority
+mongoURL=****************************************************************
 OPENAI_API_KEY=**********************************************************************
 ```
 
