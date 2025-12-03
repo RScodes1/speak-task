@@ -158,9 +158,9 @@ taskRouter.get('/tasks', async(req, res) => {
       .sort({ [sort]: order === "asc" ? 1 : -1 })
       .skip(skip)
       .limit(Number(limit));
-
     const total = await TaskModel.countDocuments(query);
 
+   
     res.json({
       page: Number(page),
       limit: Number(limit),
@@ -230,7 +230,7 @@ taskRouter.put('/tasks/update-task/:id', async (req, res) => {
     if (!updatedTask) {
       return res.status(404).json({ message: "Task not found" });
     }
-
+  
     return res.status(200).json({
       message: "Task updated successfully",
       task: updatedTask,

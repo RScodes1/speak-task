@@ -33,7 +33,6 @@ export function useVoice() {
 
         await sendAudio(blob);
       };
-
       recorder.start();
       setListening(true);
     } catch (err) {
@@ -52,18 +51,13 @@ export function useVoice() {
     }
   };
 
-  // -------------------------------------
   // Send Audio to Backend
-  // -------------------------------------
   const sendAudio = async (blob) => {
     setProcessing(true);
 
     try {
       const formData = new FormData();
       formData.append("audio", blob, "voice.webm"); // field name must match backend
-
-      // Debug: ensure formdata has file
-      // console.log([...formData.entries()]);
 
       const res = await apiPost("/api/audio/parse", formData );
 

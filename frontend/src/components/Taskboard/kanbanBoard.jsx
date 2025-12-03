@@ -4,6 +4,7 @@ import TaskFormModal from "../Modals/TaskFormModal";
 import VoicePreviewModal from "../Modals/VoicePreviewModal";
 import useTasks from "../../hooks/useTasks";
 import { DragDropContext } from "@hello-pangea/dnd";
+import ConfirmModal from "../Modals/ConfirmModal";
 
 export default function KanbanBoard({ createDefaultData }) {
   const { tasks, fetchTasks, getTask, addTask, updateTask, deleteTask } = useTasks();
@@ -11,8 +12,21 @@ export default function KanbanBoard({ createDefaultData }) {
   const [voiceTaskData, setVoiceTaskData] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isVoiceModalOpen, setIsVoiceModalOpen] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState({ show: false, taskId: null });
 
-  // Open voice modal whenever new voice data comes in
+const handleDeleteRequest = (taskId) => {
+  setConfirmDelete({ show: true, taskId });
+};
+
+const handleConfirmDelete = async () => {
+  await deleteTask(confirmDelete.taskId);
+  setConfirmDelete({ show: false, taskId: null });
+};
+
+const handleCancelDelete = () => {
+  setConfirmDelete({ show: false, taskId: null });
+};
+
   useEffect(() => {
     if (createDefaultData) {
       setVoiceTaskData(createDefaultData);
@@ -20,51 +34,40 @@ export default function KanbanBoard({ createDefaultData }) {
     }
   }, [createDefaultData]);
 
-useEffect(() => {
-  if (tasks.length === 0) {
-    fetchTasks();
-  }
-}, []);
+  useEffect(() => {
+    if (tasks.length === 0) fetchTasks();
+  }, []);
 
   const handleUpdateTask = async (updatedTask) => {
-  try {
-    await updateTask(updatedTask._id, updatedTask);
-    // optionally refresh state or update zustand store directly
-  } catch (err) {
-    console.error(err);
-  }
-};
-
+    try {
+      await updateTask(updatedTask._id, updatedTask);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const closeModal = () => {
     setEditingTask(null);
     setIsModalOpen(false);
   };
 
-  
-const handleSave = async (data) => {
-  try {
-    if (editingTask) {
-      // UPDATE MODE (called when editingTask is not null)
-      await updateTask(editingTask._id, data);
-    } else {
-      // ADD MODE
-      await addTask(data);
+  const handleSave = async (data) => {
+    try {
+      if (editingTask) {
+        await updateTask(editingTask._id, data);
+      } else {
+        await addTask(data);
+      }
+    } catch (err) {
+      console.error(err);
     }
-  } catch (err) {
-    console.error(err);
-  }
-
-  closeModal();
-};
+    closeModal();
+  };
 
   const handleVoiceSave = async (data) => {
     await addTask(data);
     setIsVoiceModalOpen(false);
     setVoiceTaskData(null);
-    // Optionally open manual edit modal for further changes
-    // setEditingTask(data); 
-    // setIsModalOpen(true);
   };
 
   const columns = [
@@ -73,40 +76,39 @@ const handleSave = async (data) => {
     { id: "done", title: "Done" },
   ];
 
-const handleDragEnd = async (result) => {
-  const { source, destination, draggableId } = result;
+  const handleDragEnd = async (result) => {
+    const { source, destination, draggableId } = result;
+    if (!destination) return;
+    if (source.droppableId === destination.droppableId) return;
 
-  if (!destination) return;
-  if (source.droppableId === destination.droppableId) return;
+    const updatedStatus = destination.droppableId;
+    const task = tasks.find((t) => t._id === draggableId);
 
-  const updatedStatus = destination.droppableId;
-
-  const task = tasks.find((t) => t._id === draggableId);
-
-  await updateTask(task._id, { ...task, status: updatedStatus });
-};
-
-
+    await updateTask(task._id, { ...task, status: updatedStatus });
+  };
 
   return (
-    <>
+    <div className="bg-[#121212] min-h-screen text-white p-6">
+      {/* Add Task Button */}
       <button
-        className="px-4 py-2 bg-blue-600 text-white rounded-xl shadow mb-4"
         onClick={() => setIsModalOpen(true)}
+        className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-xl font-medium shadow-md 
+                  hover:bg-green-700 hover:shadow-lg mb-6 active:scale-95 transition-all duration-200"
       >
+        <span className="text-lg">➕</span>
         Add Task
       </button>
 
- <DragDropContext onDragEnd={handleDragEnd}>
-    <div className="grid grid-cols-3 gap-4">
-      {columns.map((col) => (
+      {/* Kanban Columns */}
+      <DragDropContext onDragEnd={handleDragEnd}>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {columns.map((col) => (
             <KanbanColumn
               key={col.id}
               title={col.title}
               column={col}
               tasks={tasks.filter((t) => t.status === col.id)}
               onEdit={async (task) => {
-                // Fetch the latest task from backend before opening modal
                 try {
                   const latestTask = await getTask(task._id || task.id);
                   if (!latestTask) {
@@ -120,17 +122,14 @@ const handleDragEnd = async (result) => {
                   alert("Could not fetch task details. Try again.");
                 }
               }}
-              onUpdate={handleUpdateTask} // for inline status updates
-              onDelete={deleteTask}
+              onUpdate={handleUpdateTask}
+              onDeleteRequest={handleDeleteRequest}
             />
           ))}
         </div>
+      </DragDropContext>
 
- </DragDropContext>
-   
-
-
-      {/* Manual Create/Edit Modal */}
+      {/* Task Modal */}
       {isModalOpen && (
         <TaskFormModal
           initialValues={editingTask}
@@ -138,6 +137,16 @@ const handleDragEnd = async (result) => {
           onSave={handleSave}
         />
       )}
+
+      {confirmDelete.show && (
+          <ConfirmModal
+            title="Delete Task"
+            message="Are you sure you want to delete this task?"
+            onConfirm={handleConfirmDelete}
+            onCancel={handleCancelDelete}
+          />
+        )}
+
 
       {/* Voice Preview Modal */}
       {isVoiceModalOpen && voiceTaskData && (
@@ -147,6 +156,6 @@ const handleDragEnd = async (result) => {
           onSave={handleVoiceSave}
         />
       )}
-    </>
+    </div>
   );
 }

@@ -1,22 +1,27 @@
 import React, { useState } from "react";
+import { Search } from "lucide-react";
+import useTasks from "../../hooks/useTasks";
 
-export default function SearchBar({ onSearch }) {
-  const [searchTerm, setSearchTerm] = useState('');
+export default function SearchBar() {
+  const [searchTerm, setSearchTerm] = useState("");
+  const setSearch = useTasks((s) => s.setSearchTerm);
 
   const handleChange = (e) => {
-    setSearchTerm(e.target.value);
-    if(onSearch){
-      onSearch(e.target.value);
-    }
+    const value = e.target.value;
+    setSearchTerm(value);
+    setSearch(value); 
   };
 
   return (
-    <input
-      type="text"
-      placeholder="Search tasks..."
-      value={searchTerm}
-      onChange={handleChange}
-      className="border p-2 rounded flex-1"
-    />
+    <div className="flex items-center gap-2 px-3 py-2 bg-[#1b1b1d] border border-white/10 rounded-xl shadow-md w-72">
+      <Search className="w-5 h-5 text-white/60" />
+      <input
+        type="text"
+        placeholder="Search tasks..."
+        value={searchTerm}
+        onChange={handleChange}
+        className="w-full bg-transparent text-white/80 placeholder:text-white/50 outline-none"
+      />
+    </div>
   );
 }

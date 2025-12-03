@@ -1,11 +1,22 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 export default function TaskFormModal({ onClose, onSave, initialValues }) {
   const [title, setTitle] = useState(initialValues?.title || "");
   const [description, setDescription] = useState(initialValues?.description || "");
   const [priority, setPriority] = useState(initialValues?.priority || "medium");
   const [status, setStatus] = useState(initialValues?.status || "to-do");
-  const [dueDate, setDueDate] = useState(initialValues?.due_date || "");
+  const [dueDate, setDueDate] = useState(
+    initialValues?.due_date
+      ? new Date(initialValues.due_date).toISOString().split("T")[0] // converts to yyyy-MM-dd
+      : ""
+  );
+
+  // Animation state
+  const [isVisible, setIsVisible] = useState(false);
+  useEffect(() => {
+    const timer = setTimeout(() => setIsVisible(true), 10); // slight delay to trigger CSS transition
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleSave = () => {
     if (!title) {
@@ -13,39 +24,42 @@ export default function TaskFormModal({ onClose, onSave, initialValues }) {
       return;
     }
 
-  const payload = {
-    title,
-    description,
-    priority,
-    status,
-    due_date: dueDate,
-  };
+    const payload = {
+      title,
+      description,
+      priority,
+      status,
+      due_date: dueDate,
+    };
 
-  // IMPORTANT: include _id when editing
-  if (initialValues?._id) {
-    payload._id = initialValues._id;
-  }
+    if (initialValues?._id) {
+      payload._id = initialValues._id;
+    }
 
-  onSave(payload);
+    onSave(payload);
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-lg">
+    <div
+      className={`fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50 transition-opacity duration-300 ${
+        isVisible ? "opacity-100" : "opacity-0"
+      }`}
+    >
+      <div className="bg-[#1b1b1d] text-white rounded-lg p-6 w-full max-w-md shadow-2xl transform transition-transform duration-300 ease-out scale-95">
         <h2 className="text-xl font-bold mb-4">{initialValues ? "Edit Task" : "Add Task"}</h2>
 
         <div className="flex flex-col gap-3">
           <input
             type="text"
             placeholder="Title"
-            className="border p-2 rounded"
+            className="border border-white/20 bg-transparent p-2 rounded placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-green-500"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
           />
 
           <textarea
             placeholder="Description"
-            className="border p-2 rounded"
+            className="border border-white/20 bg-transparent p-2 rounded placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-green-500"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
           />
@@ -54,18 +68,17 @@ export default function TaskFormModal({ onClose, onSave, initialValues }) {
             <select
               value={priority}
               onChange={(e) => setPriority(e.target.value)}
-              className="border p-2 rounded flex-1"
+              className="border border-white/20 bg-transparent p-2 rounded flex-1 focus:outline-none focus:ring-2 focus:ring-green-500"
             >
               <option value="low">Low</option>
               <option value="medium">Medium</option>
               <option value="high">High</option>
-              <option value="critical">Critical</option>
             </select>
 
             <select
               value={status}
               onChange={(e) => setStatus(e.target.value)}
-              className="border p-2 rounded flex-1"
+              className="border border-white/20 bg-transparent p-2 rounded flex-1 focus:outline-none focus:ring-2 focus:ring-green-500"
             >
               <option value="to-do">To Do</option>
               <option value="in-progress">In Progress</option>
@@ -77,20 +90,20 @@ export default function TaskFormModal({ onClose, onSave, initialValues }) {
             type="date"
             value={dueDate}
             onChange={(e) => setDueDate(e.target.value)}
-            className="border p-2 rounded"
+            className="border border-white/20 bg-transparent p-2 rounded placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-green-500"
           />
         </div>
 
         <div className="flex justify-end gap-3 mt-4">
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+            className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded transition-colors"
           >
             Cancel
           </button>
           <button
             onClick={handleSave}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            className="px-4 py-2 bg-green-600 hover:bg-green-700 rounded transition-colors"
           >
             {initialValues ? "Update" : "Add"}
           </button>

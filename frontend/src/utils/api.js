@@ -1,12 +1,7 @@
-// api.js
-const API_BASE_URL = "http://localhost:4500";
-
-// process.env.API_URL
-// change if deployed
+const API_BASE_URL = process.env.API_URL || "http://localhost:4500"; 
 
 export async function apiGet(path) {
   const res = await fetch(`${API_BASE_URL}${path}`);
-  console.log({res});
   if (!res.ok) throw new Error(`GET ${path} failed`);
   return res.json();
 }
