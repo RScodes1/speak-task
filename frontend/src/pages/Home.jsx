@@ -3,7 +3,8 @@ import SearchBar from "../components/Controls/SearchBar";
 import FilterBar from "../components/Controls/FilterBar";
 import VoiceRecorder from "../components/Voice/VoiceRecorder";
 import Header from "../components/Header";
-import KanbanBoard from "../components/task-temp/KanbanBoard";
+import KanbanBoard from "../components/TaskB/KanbanBoard.jsx"
+
 
 export default function Home() {
   const [parsedVoiceData, setParsedVoiceData] = useState(null);
