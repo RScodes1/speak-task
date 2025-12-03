@@ -1,5 +1,7 @@
+import { toast } from 'react-toastify';
 
 const API_BASE_URL = process.env.API_URL || "https://speak-task.onrender.com"
+//  "http://localhost:4500";
 
 export async function apiGet(path) {
   const res = await fetch(`${API_BASE_URL}${path}`);
@@ -8,21 +10,38 @@ export async function apiGet(path) {
 }
 
 export async function apiPost(path, body = {}) {
-  const isFormData = body instanceof FormData;
-
   const res = await fetch(`${API_BASE_URL}${path}`, {
     method: "POST",
-    headers: isFormData
-      ? {} 
-      : { "Content-Type": "application/json" },
-    body: isFormData ? body : JSON.stringify(body),
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
   });
 
-  if (!res.ok) throw new Error(`POST ${path} failed`);
+  let json = null;
+  try {
+    json = await res.json();
+  } catch {
+    json = {};
+  }
 
-  return isFormData ? res : res.json();
+  if (res.ok) {
+    toast.success(json.message || "Success!");
+    return json;
+  }
+
+  toast.error(json.message || "Something went wrong!");
+  throw new Error(json.message || "POST request failed");
 }
 
+export async function apiPostFormData(path, formData) {
+  const res = await fetch(`${API_BASE_URL}${path}`, {
+    method: "POST",
+    body: formData, 
+  });
+
+  if (!res.ok)  throw new Error( "FormData POST failed");
+
+   return res;
+}
 
 
 export async function apiPut(path, body = {}) {
@@ -32,7 +51,15 @@ export async function apiPut(path, body = {}) {
     body: JSON.stringify(body),
   });
 
-  if (!res.ok) throw new Error(`PUT ${path} failed`);
+   if(res.ok){
+       toast.success("Task updated successfully!");   
+   }
+  else {
+      toast.error("Failed to update task.", res.error);
+      throw new Error(`PUT ${path} failed`);
+  }
+    
+   
   return res.json();
 }
 
@@ -42,7 +69,14 @@ export async function apiDelete(path) {
     method: "DELETE",
   });
 
-  if (!res.ok) throw new Error(`DELETE ${path} failed`);
+  if (res.ok){
+     toast.success("Task deleted successfully!");   
+  }
+    else {
+       toast.error("Failed to delete task.", res.error);
+      throw new Error(`DELETE ${path} failed`);
+    }
+  
 
   try {
     return await res.json();

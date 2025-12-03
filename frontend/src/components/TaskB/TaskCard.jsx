@@ -39,7 +39,9 @@ export default function TaskCard({ task, index, onUpdate, onRequestDelete, onEdi
           </button>
 
           {/* Task Info */}
-          <h3 className="font-semibold text-lg mb-1 text-white">{task.title}</h3>
+          <h3 className="font-bold text-lg mb-1 pr-10 truncate">
+            {task.title}
+          </h3>
           <p className="text-gray-300 mb-1">{task.description}</p>
           <p className="text-gray-400 text-sm mb-2">
              <em>Due: {new Date(task.due_date).toLocaleString()}</em>

@@ -1,6 +1,6 @@
 // useVoice.js
 import { useState, useRef } from "react";
-import { apiPost } from "../utils/api";
+import { apiPostFormData } from "../utils/api";
 
 export function useVoice() {
   const [listening, setListening] = useState(false);
@@ -51,7 +51,7 @@ export function useVoice() {
     }
   };
 
-  // Send Audio to Backend
+  // -------------------------------------
   const sendAudio = async (blob) => {
     setProcessing(true);
 
@@ -59,7 +59,7 @@ export function useVoice() {
       const formData = new FormData();
       formData.append("audio", blob, "voice.webm"); // field name must match backend
 
-      const res = await apiPost("/api/audio/parse", formData );
+      const res = await apiPostFormData("/api/audio/parse", formData );
 
       const data = await res.json();
 

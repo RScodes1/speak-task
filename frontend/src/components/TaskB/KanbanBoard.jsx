@@ -56,7 +56,7 @@ const handleCancelDelete = () => {
       if (editingTask) {
         await updateTask(editingTask._id, data);
       } else {
-        await addTask(data);
+       await addTask(data);    
       }
     } catch (err) {
       console.error(err);
@@ -65,9 +65,10 @@ const handleCancelDelete = () => {
   };
 
   const handleVoiceSave = async (data) => {
-    await addTask(data);
-    setIsVoiceModalOpen(false);
-    setVoiceTaskData(null);
+       await addTask(data);
+       setIsVoiceModalOpen(false);
+        setVoiceTaskData(null);
+   
   };
 
   const columns = [
@@ -101,7 +102,9 @@ const handleCancelDelete = () => {
 
       {/* Kanban Columns */}
       <DragDropContext onDragEnd={handleDragEnd}>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-4"> */}
+        <div className="flex flex-col md:flex-row gap-4 items-start">
+
           {columns.map((col) => (
             <KanbanColumn
               key={col.id}

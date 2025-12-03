@@ -78,7 +78,7 @@ export default function VoicePreviewModal({ data, onClose, onSave }) {
             type="datetime-local"
             value={dueDate ? new Date(dueDate).toISOString().slice(0, 16) : ""}
             onChange={(e) => setDueDate(e.target.value)}
-            className="border p-2 rounded"
+            className="border border-white/20 bg-transparent p-2 rounded placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-green-500"
           />
 
         </div>

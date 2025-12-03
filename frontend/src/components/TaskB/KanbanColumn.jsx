@@ -10,8 +10,10 @@ export default function KanbanColumn({ column, title, tasks, onDeleteRequest, on
         <div
           ref={provided.innerRef}
           {...provided.droppableProps}
-          className={`min-h-[200px] p-4 rounded-xl transition-all duration-200
-            ${snapshot.isDraggingOver ? "bg-[#2A2A2A]" : "bg-[#1B1B1B]"} border border-gray-700`}
+      className={`flex-1 min-w-[320px] max-w-[450px] p-4 rounded-xl 
+            transition-all bg-gray-800 border border-gray-700 
+            ${snapshot.isDraggingOver ? "bg-gray-700/70" : ""}`}
+
         >
           {/* Column Title */}
           <h2 className="text-lg font-bold mb-4 text-center text-white tracking-wide">

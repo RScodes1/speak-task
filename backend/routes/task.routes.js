@@ -184,7 +184,7 @@ taskRouter.get('/tasks/task/:id', async(req, res) => {
 // create task
 taskRouter.post('/tasks/add-task', async (req, res) => {
   try {
-    const { title, description, status, priority, dueDate } = req.body;
+    const { title, description, status, priority, due_date: dueDate } = req.body;
 
     // Basic validation
     if (!title) {

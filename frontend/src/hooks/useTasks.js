@@ -49,7 +49,7 @@ const useTasks = create((set, get) => ({
   addTask: async (task) => {
     try {
       const data = await apiPost("/api/tasks/add-task", task);
-      set({ tasks: [...get().tasks, data.task] });
+         set({ tasks: [...get().tasks, data.task] });
     } catch (err) {
       console.error("Add task error:", err);
     }
