@@ -62,6 +62,8 @@ Runs frontend on http://localhost:3000
 
 -Other libs: chrono-node (natural date parsing), stream utilities
 
+-Cloud deployment - Backend on render, Frontend on Vercel 
+
 ## 3. API Documentation
 
 Base URL: http://localhost:4500/api
