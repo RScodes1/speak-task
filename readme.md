@@ -3,8 +3,9 @@
 ## 1. Project Setup
 
 ### a. Prerequisites
-- Node.js version: `vXX.X.X`
-- MongoDB version: `X.X`
+- Node.js version: `v16.16.0`
+- MongoDB version: `8.0.16`
+- React.js version: `19.2.0`
 - AI API Keys: (e.g., OpenAI API key)
 - Email configuration: SMTP credentials or third-party email service
 
