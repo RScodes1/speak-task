@@ -6,8 +6,7 @@
 - Node.js version: `v16.16.0`
 - MongoDB version: `8.0.16`
 - React.js version: `19.2.0`
-- AI API Keys: (e.g., OpenAI API key)
-- Email configuration: SMTP credentials or third-party email service
+- AI API Keys:  OpenAI API key)
 
 ### b. Installation Steps
 
