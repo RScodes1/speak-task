@@ -225,10 +225,13 @@ Error (4xx/5xx):
         KanbanBoard.jsx
         KanbanColumn.jsx
         TaskCard.jsx
+      Header.jsx
     /hooks
       useTasks.js
       useVoice.js
-    App.jsx
+    /pages
+      Home.jsx
+    App.js
 /backend
   /routes
     task.routes.js
