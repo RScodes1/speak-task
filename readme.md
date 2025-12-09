@@ -40,7 +40,7 @@ Runs backend on http://localhost:4500
 
 - Frontend
 cd frontend
-npm start
+npm run start
 
 Runs frontend on http://localhost:3000
 ```
