@@ -201,13 +201,17 @@ Error (4xx/5xx):
 ### Learnings
 
 -Use careful validation for dates vs statuses (e.g., TODO must be future date; DONE must have today's date; IN-PROGRESS any date).
+
 -Debounce searches at the state/store layer for better UX and fewer API calls.
+
 -Always parse the fetch response JSON only once; centralized API helpers are helpful.
 
 ## Tips & Notes
 
 -Do not commit build/ folder — let Vercel or your provider build the app.
+
 -Case sensitivity: ensure file/folder names match imports exactly (KanbanBoard.jsx vs kanbanBoard.jsx) — Vercel CI uses case-sensitive FS.
+
 -Security: never expose sensitive API keys from the frontend. Use server-side env vars and a proxy for protected calls.
 
 ## Suggested Repo Structure
